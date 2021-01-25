@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from api.models.room_model import Room
+from api.models.user_model import User
+
 
 @dataclass
 class Booking:
@@ -10,6 +13,8 @@ class Booking:
     user_id: int
     time_from: datetime
     time_to: datetime
+    user: User
+    room: Room
 
     @property
     def json(self) -> dict:
@@ -19,5 +24,7 @@ class Booking:
             "room_id": self.room_id,
             "user_id": self.user_id,
             "time_from": int(self.time_from.timestamp()),
-            "time_to": int(self.time_to.timestamp())
+            "time_to": int(self.time_to.timestamp()),
+            "user": self.user.to_json(),
+            "room": self.room.json
         }

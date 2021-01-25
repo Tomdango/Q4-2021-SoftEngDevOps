@@ -1,7 +1,14 @@
 import { Spinner } from "@geist-ui/core";
 import moment from "moment";
 import React from "react";
-import { Calendar, Event, momentLocalizer, SlotInfo } from "react-big-calendar";
+import {
+  Calendar,
+  Event,
+  EventPropGetter,
+  momentLocalizer,
+  SlotInfo,
+} from "react-big-calendar";
+import { useAuthContext } from "../../../core/context/AuthContext";
 
 type RoomCalendarProps = {
   events: Event[];
@@ -14,11 +21,21 @@ const RoomCalendar: React.FC<RoomCalendarProps> = ({
   isLoading,
   onSelection,
 }) => {
+  const { user } = useAuthContext();
+
   const minTime = new Date();
   const maxTime = new Date();
 
   minTime.setHours(7, 0, 0);
   maxTime.setHours(20, 0, 0);
+
+  const getEventProps: EventPropGetter<any> = (event) => {
+    return {
+      style: {
+        backgroundColor: event.user.id === user.id ? "green" : undefined,
+      },
+    };
+  };
 
   return (
     <>
@@ -29,6 +46,7 @@ const RoomCalendar: React.FC<RoomCalendarProps> = ({
         defaultView="day"
         views={["day", "work_week", "week"]}
         onSelectSlot={onSelection}
+        eventPropGetter={getEventProps}
         popup
         step={15}
         selectable

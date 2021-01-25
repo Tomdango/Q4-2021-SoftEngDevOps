@@ -1,4 +1,4 @@
-const BASE_API_ROUTE = "";
+const BASE_API_ROUTE = "http://localhost:5000";
 
 interface PerformFetchConfig extends RequestInit {
   sendToken?: boolean;

@@ -1,13 +1,12 @@
 from datetime import datetime
 
-from flask import request
-from flask_restx import Namespace, Resource, fields
-
 from api.core import docs
 from api.core.context import context
 from api.core.jwt import ensure_user_logged_in
 from api.models import Room
 from api.models.booking_model import Booking
+from flask import request
+from flask_restx import Namespace, Resource, fields
 
 ns = Namespace("rooms", description="Rooms Operations")
 
@@ -55,6 +54,31 @@ class SingleRoom(Resource):
             return {"message": "Not Found"}, 404
 
         return room.json
+
+    @ensure_user_logged_in(pass_token=True)
+    def patch(self, room_id: str, token: dict):
+        """"""
+        role = token.get("user", {}).get("role")
+        if role != "admin":
+            return {"message": "You are not authorized to perform this action"}, 401
+
+        room = context.db.rooms.get_by_id(room_id)
+        if room is None:
+            return {"message": "Not Found"}, 404
+
+        data = dict(request.json)
+
+        room.name = data.get("name", room.name)
+        room.capacity = data.get("capacity", room.capacity)
+        room.description = data.get("description", room.description)
+        room.location = data.get("location", room.location)
+
+        context.db.rooms.update(room)
+
+        return {
+            "message": "Updated Room",
+            "room": room.json
+        }
 
 
 @ns.route("/create")
@@ -153,16 +177,18 @@ class BookRoom(Resource):
                 "existing_bookings": [booking.json for booking in existing_bookings]
             }, 400
 
-
+        user_id = token.get("user", {}).get("id")
 
         # Add the booking
         booking = Booking(
             id=None,
             room_id=room_id,
-            user_id=token.get("user", {}).get("id"),
+            user_id=user_id,
             note=body.get("note"),
             time_from=datetime.fromtimestamp(body.get("time_from")),
-            time_to=datetime.fromtimestamp(body.get("time_to"))
+            time_to=datetime.fromtimestamp(body.get("time_to")),
+            user=context.db.users.get_by_id(user_id),
+            room=room
         )
 
         context.db.bookings.add(booking)

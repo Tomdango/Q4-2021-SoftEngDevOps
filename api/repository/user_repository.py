@@ -40,6 +40,15 @@ class UserRepository(AbstractRepository):
 
         return True
 
+    def exists_by_id(self, user_id: str) -> bool:
+        query = "SELECT COUNT(*) FROM users WHERE id = ?"
+
+        with self.open_cursor() as cursor:
+            cursor.execute(query, (user_id,))
+            user_count, = cursor.fetchone()
+
+        return user_count == 1
+
     def get_by_username(self, username: str) -> Optional[User]:
         """
         Returns a user by their username, None if the user does not exist
@@ -65,6 +74,12 @@ class UserRepository(AbstractRepository):
             result = cursor.fetchone()
 
         return self._tuple_to_user(result) if result else None
+
+    def delete_by_id(self, user_id: str) -> None:
+        query = "DELETE FROM users WHERE id = ?"
+
+        with self.open_cursor() as cursor:
+            cursor.execute(query, (user_id,))
 
     @classmethod
     def _tuple_to_user(cls, data: tuple) -> User:

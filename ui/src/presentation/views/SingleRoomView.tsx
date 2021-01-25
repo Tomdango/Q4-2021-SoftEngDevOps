@@ -6,62 +6,60 @@ import {
   Text,
   useToasts,
 } from "@geist-ui/core";
-import React, { FormEventHandler, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Event, SlotInfo } from "react-big-calendar";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { useParams } from "react-router-dom";
-import {
-  bookRoom,
-  getBookingsByRoomID,
-  getRoomByID,
-} from "../../core/APIClient";
+import { getBookingsByRoomID, getRoomByID } from "../../core/APIClient";
+import { useAuthContext } from "../../core/context/AuthContext";
 import { checkIfDateEntriesOverlap } from "../../core/utils/DateUtils";
 import Layout from "../components/Layout";
 import BookRoomCard from "../components/rooms/BookRoomCard";
 import RoomCalendar from "../components/rooms/Calendar";
 import RoomDetails from "../components/rooms/RoomDetails";
 
-const SingleRoomView: React.FC = () => {
+const useSingleRoomView = () => {
   const { roomID } = useParams();
   const [isEventsLoading, setIsEventsLoading] = useState(true);
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [isBookLoading, setIsBookLoading] = useState(false);
-
-  const [, setToast] = useToasts();
-
-  const [roomData, setRoomData] = useState<any>({});
+  const [room, setRoom] = useState<any>({});
   const [events, setEvents] = useState<Event[]>([]);
   const [overlap, setOverlap] = useState(false);
 
-  const [note, setNote] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<Event>({});
+  const [, setToast] = useToasts();
 
   useEffect(() => {
     if (!roomID) return;
+
     const loadData = async () => {
       setRoomData(await getRoomByID(roomID));
       setIsPageLoading(false);
 
-      const bookings = await getBookingsByRoomID(roomID);
-      setEvents(
-        bookings.map((booking: any) => {
-          const timeFrom = new Date(booking.time_from * 1000);
-          const timeTo = new Date(booking.time_to * 1000);
+      const allBookings = await getBookingsByRoomID(roomID);
 
-          return {
-            title: booking.note || "(No Title)",
-            start: timeFrom,
-            end: timeTo,
-            resource: booking,
-          };
-        })
-      );
-      setIsEventsLoading(false);
+      const allEvents = allBookings.map((booking: any) => {
+        const fromTime = new Date(booking.time_from * 1000);
+        const toTime = new Date(booking.time_to * 1000);
+      });
     };
+
     loadData();
   }, [roomID]);
 
-  if (isPageLoading) {
+  return {
+    isPageLoading,
+  };
+};
+
+const SingleRoomView: React.FC = () => {
+  const [note, setNote] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<Event>({});
+  const { user } = useAuthContext();
+
+  const hook = useSingleRoomView();
+
+  if (hook.isPageLoading) {
     return (
       <Layout
         title={
@@ -104,21 +102,21 @@ const SingleRoomView: React.FC = () => {
     });
   };
 
-  const handleSubmit: FormEventHandler = async (event) => {
-    event.preventDefault();
-    if (!roomID || !selectedEvent.start || !selectedEvent.end) return;
+  // const handleSubmit: FormEventHandler = async (event) => {
+  //   event.preventDefault();
+  //   if (!roomID || !selectedEvent.start || !selectedEvent.end) return;
 
-    setIsBookLoading(true);
+  //   setIsBookLoading(true);
 
-    await bookRoom(roomID, selectedEvent.start, selectedEvent.end, note);
+  //   await bookRoom(roomID, selectedEvent.start, selectedEvent.end, note);
 
-    setToast({ text: "Booking Confirmed", type: "success" });
+  //   setToast({ text: "Booking Confirmed", type: "success" });
 
-    setEvents((e) => [...e, { ...selectedEvent, title: note }]);
-    setSelectedEvent({});
-    setIsBookLoading(false);
-    setNote("");
-  };
+  //   setEvents((e) => [...e, { ...selectedEvent, title: note }]);
+  //   setSelectedEvent({});
+  //   setIsBookLoading(false);
+  //   setNote("");
+  // };
 
   return (
     <Layout

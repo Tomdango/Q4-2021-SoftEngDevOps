@@ -56,5 +56,18 @@ class RoomsRepository(AbstractRepository):
 
         return [self._tuple_to_room(result) for result in results]
 
+    def update(self, room: Room) -> None:
+        """"""
+
+        query = """
+        UPDATE rooms
+        SET name = ?, description = ?, capacity = ?, location = ?
+        WHERE id = ?
+        """
+
+        with self.open_cursor() as cursor:
+            cursor.execute(query, (room.name, room.description,
+                           room.capacity, room.location, room.id))
+
     def _tuple_to_room(self, data: Tuple) -> Room:
         return Room(**dict(zip(self.HEADERS, data)))

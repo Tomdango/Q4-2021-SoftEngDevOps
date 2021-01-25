@@ -1,17 +1,15 @@
-from flask import request
-from flask_restx import Namespace, Resource, fields
-
 from api.core import docs
 from api.core.context import context
 from api.core.jwt import create_token, ensure_user_logged_in
 from api.models.user_model import User
+from flask import request
+from flask_restx import Namespace, Resource, fields
 
 ns = Namespace("auth", description="Auth Operations")
 
 
 @ns.route("/register")
 class Register(Resource):
-
     request_model = ns.model("RegisterRequestBody", {
         "name": fields.String(required=True, description="The name of the user"),
         "username": fields.String(required=True, description="The username of the user"),
@@ -99,3 +97,22 @@ class Refresh(Resource):
 
         user = context.db.users.get_by_id(user_id)
         return user.to_json()
+
+
+@ns.route("/users/<string:user_id>")
+class UserResource(Resource):
+    @ns.param(**docs.Params.BEARER_TOKEN)
+    @ensure_user_logged_in(pass_token=True)
+    def delete(self, user_id: str, token: dict):
+        """"""
+        logged_in_user = token.get("user", {})
+
+        if logged_in_user.get("id") != user_id and logged_in_user.get("role") != "admin":
+            return {
+                "message": "You are not authorized to perform this action"
+            }, 401
+
+        context.db.bookings.delete_all_by_user_id(user_id)
+        context.db.users.delete_by_id(user_id)
+
+        return {"message": "Deleted User"}, 200

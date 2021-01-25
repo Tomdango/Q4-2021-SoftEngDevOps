@@ -1,16 +1,21 @@
+from datetime import datetime, timedelta
 from functools import wraps
 from typing import Optional, Tuple
 
-from flask import request
-from jwt import decode, encode
-
+from api.core.context import context
 from api.models import User
+from flask import request
+
+from jwt import decode, encode
 
 
 def create_token(user: User) -> str:
     """
     """
-    payload = {"user": user.to_json()}
+
+    expiry = datetime.now() + timedelta(hours=8)
+
+    payload = {"user": user.to_json(), "exp": expiry.timestamp()}
     return encode(payload, "secret", algorithm="HS256")
 
 
@@ -42,6 +47,12 @@ def ensure_user_logged_in(pass_token: bool = False):
             is_valid, token = verify_token(token)
             if not is_valid:
                 return {"message": "Invalid Authorization Token"}, 401
+
+            user_id = token.get("user", {}).get("id")
+
+            exists = context.db.users.exists_by_id(user_id)
+            if not exists:
+                return {"message": "You are not authorized to perform this action."}, 401
 
             if pass_token:
                 return func(*args, **kwargs, token=token)
