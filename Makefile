@@ -7,3 +7,8 @@ start-api: activate-virtualenv
 
 start-ui:
 	cd ui && yarn start
+
+build-ui:
+	cd ui && rm -rf build/ && yarn build
+	rm -rf api/public/
+	cp -r ui/build/ api/public
