@@ -1,12 +1,13 @@
 from datetime import datetime
 
+from flask import request
+from flask_restx import Namespace, Resource, fields
+
 from api.core import docs
 from api.core.context import context
 from api.core.jwt import ensure_user_logged_in
 from api.models import Room
 from api.models.booking_model import Booking
-from flask import request
-from flask_restx import Namespace, Resource, fields
 
 ns = Namespace("rooms", description="Rooms Operations")
 

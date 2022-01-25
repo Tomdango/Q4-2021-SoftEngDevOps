@@ -1,6 +1,7 @@
+from flask_restx import Namespace, Resource
+
 from api.core.context import context
 from api.core.jwt import ensure_user_logged_in
-from flask_restx import Namespace, Resource
 
 ns = Namespace("bookings", description="Bookings Operations")
 

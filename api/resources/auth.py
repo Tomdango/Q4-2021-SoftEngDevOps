@@ -1,9 +1,10 @@
+from flask import request
+from flask_restx import Namespace, Resource, fields
+
 from api.core import docs
 from api.core.context import context
 from api.core.jwt import create_token, ensure_user_logged_in
 from api.models.user_model import User
-from flask import request
-from flask_restx import Namespace, Resource, fields
 
 ns = Namespace("auth", description="Auth Operations")
 

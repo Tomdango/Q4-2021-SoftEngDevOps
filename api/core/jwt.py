@@ -1,10 +1,10 @@
 from functools import wraps
 from typing import Optional, Tuple
 
-from api.models import User
 from flask import request
-
 from jwt import decode, encode
+
+from api.models import User
 
 
 def create_token(user: User) -> str:
