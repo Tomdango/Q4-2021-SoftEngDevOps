@@ -18,7 +18,7 @@ def verify_token(token: str) -> Tuple[bool, Optional[dict]]:
     try:
         decoded_jwt = decode(token, "secret", algorithms=["HS256"])
         return True, decoded_jwt
-    except:
+    except:  # pylint:disable=bare-except
         return False, None
 
 

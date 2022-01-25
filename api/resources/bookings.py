@@ -23,7 +23,6 @@ class GetBookingsByUser(Resource):
         """Returns all bookings created by the current user"""
 
         user_id = token.get("user", {}).get("id")
-
         if user_id is None:
             return {"message": "Invalid Token"}, 400
 

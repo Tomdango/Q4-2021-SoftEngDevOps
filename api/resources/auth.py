@@ -94,7 +94,6 @@ class Refresh(Resource):
         """Returns the user details for a session"""
 
         user_id = token.get("user", {}).get("id")
-
         if user_id is None:
             return {"message": "Invalid Token"}, 400
 
